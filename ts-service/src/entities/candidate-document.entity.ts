@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -10,6 +11,7 @@ import {
 import { SampleCandidate } from './sample-candidate.entity';
 
 @Entity({ name: 'candidate_documents' })
+@Index('idx_candidate_documents_candidate_uploaded_at', ['candidateId', 'uploadedAt'])
 export class CandidateDocument {
   @PrimaryColumn({ type: 'varchar', length: 64 })
   id!: string;
