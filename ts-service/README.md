@@ -1,18 +1,33 @@
-# TalentFlow TypeScript Service Starter
+# TalentFlow TypeScript Service
 
-NestJS starter service for the backend assessment.
+NestJS service for candidate document intake and asynchronous LLM-powered candidate summary generation.
 
-This service includes:
+## Implemented Workflow
 
-- Nest bootstrap with global validation
-- TypeORM + migration setup
-- Fake auth context (`x-user-id`, `x-workspace-id`)
-- Tiny workspace-scoped sample module
-- Queue abstraction module
-- LLM provider abstraction with a fake summarization provider
-- Jest test setup
+- Upload candidate documents as extracted text.
+- Request asynchronous summary generation through the queue module.
+- Worker reads stored documents, calls a summarization provider abstraction, and persists a structured summary.
+- Retrieve summaries by candidate and by summary id.
 
-The assessment-specific candidate document and summary workflow is intentionally not implemented.
+## API Endpoints
+
+All candidate endpoints require fake auth headers:
+
+- `x-user-id`
+- `x-workspace-id`
+
+Endpoints:
+
+- `POST /candidates/:candidateId/documents`
+- `POST /candidates/:candidateId/summaries/generate`
+- `GET /candidates/:candidateId/summaries`
+- `GET /candidates/:candidateId/summaries/:summaryId`
+
+Starter utility endpoints retained:
+
+- `GET /health`
+- `POST /sample/candidates`
+- `GET /sample/candidates`
 
 ## Prerequisites
 
@@ -37,17 +52,23 @@ cp .env.example .env
 - `PORT`
 - `DATABASE_URL`
 - `NODE_ENV`
-- `GEMINI_API_KEY` (leave blank unless implementing a real provider)
+- `SUMMARY_PROVIDER` (`fake` default, use `gemini` for live LLM calls)
+- `GEMINI_API_KEY` (required when `SUMMARY_PROVIDER=gemini`)
 
 Do not commit API keys or secrets.
 
-Candidates may create a free Gemini API key through Google AI Studio for the full assessment implementation.
-
-## Run Migrations
+## Migrations
 
 ```bash
 cd ts-service
 npm run migration:run
+```
+
+Revert last migration:
+
+```bash
+cd ts-service
+npm run migration:revert
 ```
 
 ## Run Service
@@ -65,19 +86,30 @@ npm test
 npm run test:e2e
 ```
 
-## Fake Auth Headers
+## LLM Provider Notes
 
-Sample endpoints in this starter are protected by a fake local auth guard.
-Include these headers in requests:
+- Provider abstraction: `SummarizationProvider`.
+- Implementations:
+  - `FakeSummarizationProvider` (used by default for local/offline/test workflows)
+  - `GeminiSummarizationProvider` (real API integration using Google Gemini)
+- Gemini responses are requested as JSON and validated before saving. Invalid payloads move summaries to `failed` with `errorMessage`.
 
-- `x-user-id`: any non-empty string (example: `user-1`)
-- `x-workspace-id`: workspace identifier used for scoping (example: `workspace-1`)
+## Schema Overview
 
-## Layout Highlights
+- `sample_workspaces`: recruiter workspace boundary
+- `sample_candidates`: candidate identity and workspace ownership
+- `candidate_documents`: uploaded document records
+- `candidate_summaries`: async generation state + structured output
 
-- `src/auth/`: fake auth guard, user decorator, auth types
-- `src/entities/`: starter entities
-- `src/sample/`: tiny example module (controller/service/dto)
-- `src/queue/`: in-memory queue abstraction
-- `src/llm/`: provider interface + fake provider
-- `src/migrations/`: TypeORM migration files
+## Key Design Decisions
+
+- Workspace access is enforced in service-layer candidate checks for every candidate-scoped endpoint.
+- Summary generation happens only through queue jobs; controllers do not run provider calls directly.
+- Status transitions are explicit: `pending` -> `completed` or `failed`.
+- Worker sets provider metadata and captures failure details for traceability.
+
+## Assumptions and Tradeoffs
+
+- Candidate creation remains available via the starter sample endpoints.
+- Queue implementation is in-memory and process-local (sufficient for assessment scope, not production scale).
+- Documents are stored as text payloads with storage key metadata rather than binary file handling.
