@@ -1,12 +1,9 @@
-# Backend Engineering Assessment Starter
+# Backend Engineering Assessment
 
-This repository is a standalone starter for the backend engineering take-home assessment.
-It contains two independent services in a shared mono-repo:
+This repository contains two standalone services:
 
-- `python-service/` (InsightOps): FastAPI + SQLAlchemy + manual SQL migrations
-- `ts-service/` (TalentFlow): NestJS + TypeORM
-
-The repository is intentionally incomplete for assessment features. Candidates should build within the existing structure and patterns.
+- `python-service/` (FastAPI + SQLAlchemy + Jinja2)
+- `ts-service/` (NestJS + TypeORM)
 
 ## Prerequisites
 
@@ -17,7 +14,7 @@ The repository is intentionally incomplete for assessment features. Candidates s
 
 ## Start Postgres
 
-From the repository root:
+From repository root:
 
 ```bash
 docker compose up -d postgres
@@ -29,12 +26,101 @@ This starts PostgreSQL on `localhost:5432` with:
 - user: `assessment_user`
 - password: `assessment_pass`
 
-## Service Guides
+## Setup Instructions
 
-- Python service setup and commands: [python-service/README.md](python-service/README.md)
-- TypeScript service setup and commands: [ts-service/README.md](ts-service/README.md)
+### Python service
 
-## Notes
+```bash
+cd python-service
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
+```
 
-- Keep your solution focused on the assessment tasks.
-- Do not replace the project structure with a different architecture.
+### TypeScript service
+
+```bash
+cd ts-service
+npm install
+cp .env.example .env
+```
+
+## Run Both Services
+
+### Python service
+
+```bash
+cd python-service
+source .venv/bin/activate
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+### TypeScript service
+
+```bash
+cd ts-service
+npm run start:dev
+```
+
+## Run Migrations
+
+### Python service
+
+```bash
+cd python-service
+source .venv/bin/activate
+python -m app.db.run_migrations up
+```
+
+### TypeScript service
+
+```bash
+cd ts-service
+npm run migration:run
+```
+
+## Run Tests
+
+### Python service
+
+```bash
+cd python-service
+source .venv/bin/activate
+python -m pytest
+```
+
+### TypeScript service
+
+```bash
+cd ts-service
+npm test
+npm run test:e2e
+```
+
+## Design Decisions
+
+- Briefing data is modeled relationally in `briefings`, `briefing_points`, and `briefing_metrics`, with points split by `point_type` and metrics constrained for per-briefing uniqueness.
+- Validation is handled in Pydantic request schemas to keep route handlers thin and keep rules centralized.
+- HTML generation is server-side through Jinja2 templates to preserve separation between data transformation and presentation.
+- A service layer assembles report view models, sorts display-order records, and formats report metadata before rendering.
+
+## Schema Decisions
+
+- `briefings` stores primary report identity and generated artifact state (`report_html`, `generated_at`).
+- `briefing_points` stores both key points and risks with explicit `display_order` and `point_type`.
+- `briefing_metrics` is optional per briefing and uses a unique `(briefing_id, name)` constraint.
+
+## Assumptions and Tradeoffs
+
+- Metric uniqueness is treated case-insensitively in API validation.
+- Report HTML is persisted on generation for deterministic retrieval and simpler read performance.
+- The generated endpoint is idempotent in behavior and will regenerate the HTML with a fresh timestamp.
+- Styling is intentionally lightweight, semantic, and backend-owned per task scope.
+
+## Improvements With More Time
+
+- Add richer integration tests against PostgreSQL in CI.
+- Add stricter DB-level check constraints for allowed `point_type` values.
+- Add pagination/listing endpoints and analyst/workspace ownership controls.
+- Add API versioning and richer observability around generation events.

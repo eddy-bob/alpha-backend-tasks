@@ -1,17 +1,6 @@
-# InsightOps Python Service Starter
+# InsightOps Python Service
 
-FastAPI starter service for the backend assessment.
-
-This service includes:
-
-- FastAPI app bootstrap and health endpoint
-- SQLAlchemy wiring
-- Manual SQL migration runner
-- One small `sample_items` example feature
-- Jinja template wiring with a minimal base template
-- Pytest setup
-
-The assessment-specific briefing features are intentionally not implemented.
+FastAPI service for the briefing report generator task.
 
 ## Prerequisites
 
@@ -40,7 +29,7 @@ cp .env.example .env
 - `APP_ENV`
 - `APP_PORT`
 
-## Run Migrations (Manual SQL Runner)
+## Run Migrations
 
 Apply pending migrations:
 
@@ -58,14 +47,6 @@ source .venv/bin/activate
 python -m app.db.run_migrations down --steps 1
 ```
 
-How it works:
-
-- SQL files live in `python-service/db/migrations/`
-- A `schema_migrations` table tracks applied filenames
-- Up files are applied in sorted filename order (`*.sql` or `*.up.sql`)
-- Rollback uses a paired `*.down.sql` file for each applied migration
-- Applied migration files are skipped on subsequent runs
-
 ## Run Service
 
 ```bash
@@ -82,6 +63,19 @@ source .venv/bin/activate
 python -m pytest
 ```
 
+## Implemented Endpoints
+
+- `POST /briefings`
+- `GET /briefings/{id}`
+- `POST /briefings/{id}/generate`
+- `GET /briefings/{id}/html`
+
+Also retained from starter:
+
+- `GET /health`
+- `POST /sample-items`
+- `GET /sample-items`
+
 ## Project Layout
 
 - `app/main.py`: FastAPI bootstrap and router wiring
@@ -90,7 +84,7 @@ python -m pytest
 - `db/migrations/`: SQL migration files
 - `app/models/`: ORM models
 - `app/schemas/`: Pydantic request/response schemas
-- `app/services/`: service-layer logic and template helpers
+- `app/services/`: service-layer logic and report formatter
 - `app/api/`: route handlers
 - `app/templates/`: Jinja templates
 - `tests/`: test suite
