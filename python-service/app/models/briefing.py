@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Literal
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy.schema import Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -11,6 +12,10 @@ from app.db.base import Base
 
 class Briefing(Base):
     __tablename__ = "briefings"
+    __table_args__ = (
+        Index("idx_briefings_ticker_created_at", "ticker", "created_at"),
+        Index("idx_briefings_created_at", "created_at"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     company_name: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -33,6 +38,9 @@ class Briefing(Base):
 
 class BriefingPoint(Base):
     __tablename__ = "briefing_points"
+    __table_args__ = (
+        Index("idx_briefing_points_briefing_id_display_order", "briefing_id", "display_order"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     briefing_id: Mapped[int] = mapped_column(ForeignKey("briefings.id", ondelete="CASCADE"), nullable=False)
@@ -45,7 +53,10 @@ class BriefingPoint(Base):
 
 class BriefingMetric(Base):
     __tablename__ = "briefing_metrics"
-    __table_args__ = (UniqueConstraint("briefing_id", "name", name="uq_briefing_metric_name"),)
+    __table_args__ = (
+        UniqueConstraint("briefing_id", "name", name="uq_briefing_metric_name"),
+        Index("idx_briefing_metrics_briefing_id_display_order", "briefing_id", "display_order"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     briefing_id: Mapped[int] = mapped_column(ForeignKey("briefings.id", ondelete="CASCADE"), nullable=False)

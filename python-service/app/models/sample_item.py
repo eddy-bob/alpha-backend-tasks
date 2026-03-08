@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, String, func
+from sqlalchemy.schema import Index
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -8,6 +9,10 @@ from app.db.base import Base
 
 class SampleItem(Base):
     __tablename__ = "sample_items"
+    __table_args__ = (
+        Index("idx_sample_items_created_at", "created_at"),
+        Index("idx_sample_items_name", "name"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)

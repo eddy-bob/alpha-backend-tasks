@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -13,6 +14,7 @@ import { SampleCandidate } from './sample-candidate.entity';
 export type CandidateSummaryStatus = 'pending' | 'completed' | 'failed';
 
 @Entity({ name: 'candidate_summaries' })
+@Index('idx_candidate_summaries_candidate_created_at', ['candidateId', 'createdAt'])
 export class CandidateSummary {
   @PrimaryColumn({ type: 'varchar', length: 64 })
   id!: string;

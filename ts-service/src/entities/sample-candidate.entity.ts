@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -10,6 +11,7 @@ import {
 import { SampleWorkspace } from './sample-workspace.entity';
 
 @Entity({ name: 'sample_candidates' })
+@Index('idx_sample_candidates_workspace_created_at', ['workspaceId', 'createdAt'])
 export class SampleCandidate {
   @PrimaryColumn({ type: 'varchar', length: 64 })
   id!: string;
