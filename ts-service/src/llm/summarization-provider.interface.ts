@@ -14,6 +14,7 @@ export interface CandidateSummaryInput {
 }
 
 export interface SummarizationProvider {
+  readonly name: string;
   generateCandidateSummary(
     input: CandidateSummaryInput,
   ): Promise<CandidateSummaryResult>;

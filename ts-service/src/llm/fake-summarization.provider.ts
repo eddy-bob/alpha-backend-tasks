@@ -8,6 +8,8 @@ import {
 
 @Injectable()
 export class FakeSummarizationProvider implements SummarizationProvider {
+  readonly name = 'fake';
+
   async generateCandidateSummary(
     input: CandidateSummaryInput,
   ): Promise<CandidateSummaryResult> {
