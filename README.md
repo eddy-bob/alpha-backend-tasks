@@ -151,3 +151,4 @@ npm run test:e2e
 - Add API versioning and richer observability around generation events.
 - Replace in-memory queue with durable broker-backed workers and retry policy.
 - Add per-workspace candidate CRUD endpoints instead of relying on starter sample module.
+# alpha-backend-tasks
